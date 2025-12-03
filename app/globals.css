@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+* {
+  transition: all 0.2s ease;
+}
+
+body {
+  background: #f7f8fc;
+}
+
+/* Premium shadows */
+.shadow-soft {
+  box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+}
