@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BarChart3, CalendarDays, PlusCircle, Users, Edit } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { BarChart3, CalendarDays, PlusCircle, Users, Edit, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function OrganizerDashboard() {
-  const { data: session } = useSession();
-
+  const router = useRouter();
+  const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -18,34 +18,65 @@ export default function OrganizerDashboard() {
 
   useEffect(() => {
     const loadData = async () => {
+      // First, check if user is authenticated via cookies
+      const cookies = document.cookie;
+      const userSessionCookie = cookies.split('; ').find(row => row.startsWith('user-session='));
+      
+      if (!userSessionCookie) {
+        // No session, redirect to login
+        router.push('/auth/direct-login');
+        return;
+      }
+
       try {
+        // Parse user data from cookie
+        const sessionValue = decodeURIComponent(userSessionCookie.split('=')[1]);
+        const userData = JSON.parse(sessionValue);
+        
+        // Check if user is organizer
+        if (userData.role !== 'organizer') {
+          console.log('❌ User is not an organizer, redirecting...');
+          router.push('/auth/direct-login');
+          return;
+        }
+        
+        setUser(userData);
+        console.log('✅ Organizer logged in:', userData.email);
+
+        // Load events for this organizer
         const eRes = await fetch("/api/events");
         const eventsData = await eRes.json();
 
-        setEvents(eventsData);
+        // Filter events for this organizer
+        const organizerEvents = eventsData.filter(event => 
+          event.organizerId === userData.id || event.createdBy === userData.id
+        );
+        
+        setEvents(organizerEvents);
 
-        // Fake stats (replace with actual API)
+        // Calculate stats
         setStats({
-          totalEvents: eventsData?.length || 0,
-          totalBookings: eventsData.reduce(
-            (acc, ev) => acc + (ev.bookings || 0),
-            0
-          ),
-          revenue: eventsData.reduce(
-            (acc, ev) => acc + (ev.revenue || 0),
-            0
-          ),
+          totalEvents: organizerEvents.length || 0,
+          totalBookings: organizerEvents.reduce((acc, ev) => acc + (ev.bookings || 0), 0),
+          revenue: organizerEvents.reduce((acc, ev) => acc + (ev.revenue || 0), 0),
         });
 
         setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.log("Error loading data:", error);
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [router]);
+
+  const handleLogout = () => {
+    // Clear cookies
+    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = 'user-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    window.location.href = '/auth/direct-login';
+  };
 
   if (loading) {
     return (
@@ -55,21 +86,42 @@ export default function OrganizerDashboard() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
+        <p className="mt-2">Please login as an organizer</p>
+        <button
+          onClick={() => router.push('/auth/direct-login')}
+          className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg"
+        >
+          Go to Login
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
 
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Welcome, <span className="text-blue-600">{session?.user?.name}</span>
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Welcome, <span className="text-blue-600">{user.name || user.email}</span>
+          </h1>
+          <p className="text-gray-600 mt-1">Organizer Dashboard</p>
+        </div>
 
-        <Link
-          href="/organizer/events/create"
-          className="bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-blue-700 transition flex items-center gap-2"
-        >
-          <PlusCircle size={20} /> Create Event
-        </Link>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-700">{user.email}</span>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2"
+          >
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
       </div>
 
       {/* Stats Section */}
@@ -99,6 +151,16 @@ export default function OrganizerDashboard() {
         </div>
       </div>
 
+      {/* Create Event Button */}
+      <div className="mb-8">
+        <Link
+          href="/organiser/events/create"
+          className="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+        >
+          <PlusCircle size={20} /> Create New Event
+        </Link>
+      </div>
+
       {/* Events List */}
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
         Your Events
@@ -106,7 +168,13 @@ export default function OrganizerDashboard() {
 
       {events.length === 0 ? (
         <div className="text-gray-600 text-center py-10 border rounded-2xl bg-white shadow">
-          You haven't created any events yet
+          <p className="text-lg">You haven't created any events yet</p>
+          <Link
+            href="/organiser/events/create"
+            className="inline-block mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Create Your First Event
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -140,21 +208,21 @@ export default function OrganizerDashboard() {
                 {/* Actions */}
                 <div className="mt-5 flex justify-between">
                   <Link
-                    href={`/organizer/events/${ev._id}`}
+                    href={`/organiser/events/${ev._id}`}
                     className="text-blue-600 font-semibold hover:underline"
                   >
                     View
                   </Link>
 
                   <Link
-                    href={`/organizer/events/${ev._id}/edit`}
+                    href={`/organiser/events/${ev._id}/edit`}
                     className="flex items-center gap-1 text-green-600 hover:underline"
                   >
                     <Edit size={18} /> Edit
                   </Link>
 
                   <Link
-                    href={`/organizer/events/${ev._id}/seats`}
+                    href={`/organiser/events/${ev._id}/seats`}
                     className="text-purple-600 font-semibold hover:underline"
                   >
                     Seat Map

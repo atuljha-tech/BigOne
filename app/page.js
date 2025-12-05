@@ -408,51 +408,54 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Register Button */}
-                  <Link href={`/auth/register?role=${activeRole}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full p-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 group relative overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative flex items-center justify-center gap-3">
-                        <span className="text-lg">Create {activeRole === 'organizer' ? 'Organizer' : 'User'} Account</span>
-                        <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
-                      </div>
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                    </motion.button>
-                  </Link>
+              // Find this section in your app/page.js file (around line ~580-620):
 
-                  {/* Login Button */}
-                  <Link href={`/auth/login?role=${activeRole}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full p-5 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-300 group"
-                    >
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="text-lg">Sign In as {activeRole === 'organizer' ? 'Organizer' : 'User'}</span>
-                        <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
-                      </div>
-                    </motion.button>
-                  </Link>
-                </div>
+{/* Action Buttons */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {/* Register Button */}
+  <Link href="/auth/register">  {/* CHANGED: Removed role parameter */}
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full p-5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 group relative overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <div className="relative flex items-center justify-center gap-3">
+        <span className="text-lg">Create {activeRole === 'organizer' ? 'Organizer' : 'User'} Account</span>
+        <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
+      </div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+    </motion.button>
+  </Link>
+
+  {/* Login Button */}
+  <Link href="/auth/direct-login">  {/* CHANGED: Updated to direct-login */}
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full p-5 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all duration-300 group"
+    >
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-lg">Sign In as {activeRole === 'organizer' ? 'Organizer' : 'User'}</span>
+        <FaArrowRight className="group-hover:translate-x-2 transition-transform" />
+      </div>
+    </motion.button>
+  </Link>
+</div>
 
                 {/* Quick Preview */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-white/5 to-transparent rounded-2xl border border-white/10">
-                  <h5 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <MdSpeed className="text-blue-400" />
-                    Quick Preview
-                  </h5>
-                  <p className="text-gray-300 text-sm">
-                    {activeRole === 'organizer' 
-                      ? "Create stunning seat maps, track sales in real-time, and manage multiple events from one dashboard."
-                      : "Browse events, book seats with 3D preview, and access all your tickets in a digital wallet."}
-                  </p>
-                </div>
+              {/* Quick Preview */}
+<div className="mt-8 p-6 bg-gradient-to-r from-white/5 to-transparent rounded-2xl border border-white/10">
+  <h5 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+    <MdSpeed className="text-blue-400" />
+    Quick Preview
+  </h5>
+  <p className="text-gray-300 text-sm">
+    {activeRole === 'organizer' 
+      ? "Create events, design seat maps with our drawing tool, and manage bookings in real-time."
+      : "Browse events by city, select seats interactively, and get instant digital tickets."}
+  </p>
+</div>
               </div>
             </div>
           </div>

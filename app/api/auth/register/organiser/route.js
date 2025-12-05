@@ -3,12 +3,6 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/lib/models/User';
 
-// IMPORTANT: Disable Next.js body parsing middleware if using NextAuth
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
 
 export async function POST(req) {
   try {
